@@ -1,0 +1,99 @@
+"""
+Section IV-C: Generate state and input sample points for
+stabilizing controller synthesis.
+
+System:  x_{t+1} = 0.95*x_t - 0.2*x_t^3 + u_t
+Domain:  X = [-1, 1],  U = [-1, 1]
+
+Design:
+- N_i state points {x_i} sampled uniformly from X
+- For each x_i, N_j input points scaled as u_j(x_i) = c*|x_i|*u_j_base
+  where {u_j_base} is a fixed grid on [-1, 1]
+- Next states x^+_ij = f(x_i, u_j(x_i)) computed for all pairs
+
+Outputs
+-------
+data_control.npz  --  x_grid, u_grid, x_next
+scatter plot      --  (x_i, u_j(x_i)) pairs
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+
+# ── parameters ────────────────────────────────────────────────────────────────
+SEED    = 42
+N_i     = 200          # number of state sample points
+N_j     = 50           # number of input points per state
+c       = 0.5          # scaling constant: u_j(x_i) = c*|x_i|*u_j_base
+SAVE_DIR = "."
+
+# ── dynamics ──────────────────────────────────────────────────────────────────
+def f(x, u):
+    return 0.95 * x - 0.2 * x**3 + u
+
+# ── state grid ────────────────────────────────────────────────────────────────
+rng = np.random.default_rng(SEED)
+x_grid = rng.uniform(-1.0, 1.0, size=N_i)   # (N_i,)
+
+# ── fixed base input grid on [-1, 1] ─────────────────────────────────────────
+u_base = np.linspace(-1.0, 1.0, N_j)        # (N_j,)
+
+# ── build scaled input grid and next states ───────────────────────────────────
+u_grid = np.zeros((N_i, N_j))
+x_next = np.zeros((N_i, N_j))
+
+for i, xi in enumerate(x_grid):
+    u_scaled = c * abs(xi) * u_base          # scale base grid to |x_i|
+    u_scaled = np.clip(u_scaled, -1.0, 1.0) # clip to U = [-1, 1]
+    u_grid[i] = u_scaled
+    x_next[i] = f(xi, u_scaled)
+
+# ── save ──────────────────────────────────────────────────────────────────────
+np.savez(os.path.join(SAVE_DIR, "data_control.npz"),
+         x_grid=x_grid,
+         u_base=u_base,
+         u_grid=u_grid,
+         x_next=x_next,
+         c=c)
+print(f"Saved data_control.npz")
+print(f"  x_grid shape : {x_grid.shape}")
+print(f"  u_grid shape : {u_grid.shape}  (N_i x N_j)")
+print(f"  x_next shape : {x_next.shape}  (N_i x N_j)")
+
+# ── scatter plot: (x_i, u_j(x_i)) pairs ──────────────────────────────────────
+fig, axes = plt.subplots(1, 2, figsize=(10, 5))
+
+# (a) scaled input grid
+ax = axes[0]
+for i, xi in enumerate(x_grid):
+    ax.scatter(np.full(N_j, xi), u_grid[i],
+               s=8, alpha=0.4, color="steelblue")
+ax.axhline(-1, color="gray", lw=0.8, ls="--")
+ax.axhline( 1, color="gray", lw=0.8, ls="--")
+ax.axvline(-1, color="gray", lw=0.8, ls="--")
+ax.axvline( 1, color="gray", lw=0.8, ls="--")
+ax.set_xlabel(r"$x_i$", fontsize=13)
+ax.set_ylabel(r"$u_j(x_i)$", fontsize=13)
+ax.set_title(r"(a) Scaled input grid $u_j(x_i) = c|x_i|\mathsf{u}_j$", fontsize=11)
+ax.set_xlim(-1.2, 1.2)
+ax.set_ylim(-1.2, 1.2)
+ax.set_aspect("equal")
+ax.grid(True, alpha=0.3)
+
+# (b) next states x^+_ij
+ax = axes[1]
+for i, xi in enumerate(x_grid):
+    ax.scatter(np.full(N_j, xi), x_next[i],
+               s=8, alpha=0.4, color="tomato")
+ax.axhline(0, color="k", lw=0.8, ls="--")
+ax.set_xlabel(r"$x_i$", fontsize=13)
+ax.set_ylabel(r"$x^+_{ij}$", fontsize=13)
+ax.set_title(r"(b) Next states $x^+_{ij} = f(x_i, u_j(x_i))$", fontsize=11)
+ax.set_xlim(-1.2, 1.2)
+ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.savefig(os.path.join(SAVE_DIR, "case2_data.png"), dpi=150)
+plt.close()
+print("Saved case2_data.png")
