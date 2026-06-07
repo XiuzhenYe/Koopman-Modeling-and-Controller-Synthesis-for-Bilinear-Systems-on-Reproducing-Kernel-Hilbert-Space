@@ -1,0 +1,2 @@
+# Koopman-Modeling-and-Controller-Synthesis-for-Bilinear-Systems-on-Reproducing-Kernel-Hilbert-Space
+This repository provides simulation code for the paper "Koopman Modeling and Stabilization of Discrete-Time Nonlinear Control Systems: Bilinearity on a Reproducing Kernel Hilbert Space" The code implements data-driven learning of a bilinear Koopman operator on a reproducing kernel Hilbert space, and synthesis of a stabilizing feedback controller
