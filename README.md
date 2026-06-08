@@ -26,7 +26,8 @@ Produces `data_train.npz` (N=300 i.i.d. uniform training snapshots) and `data_te
 
 **Step 2: Learn operator and plot**
 ```bash
-python case1_main.py
+python case1_data_prediction.py
+python case1_error_surface.py
 ```
 Builds the three-term linear-radial Gram matrix:
 $$G_{\mathring{\psi},ij} = \mathring{\kappa}(x_i, x_j) + \mathring{\varkappa}(u_i, u_j) + \mathring{\kappa}(x_i, x_j)\,\mathring{\varkappa}(u_i, u_j)$$
@@ -34,8 +35,8 @@ and solves the closed-form solution to eq. (3) of the paper:
 $$\Theta = (G_{\mathring{\psi}} + N\beta I)^{-1}, \quad B = \Theta Y_{\mathrm{tr}}, \quad \hat{x}^+ = G_{\mathring{\psi},\mathrm{query}}\,B.$$
 
 Produces:
-- `case1_figure1.png` — (a) training/testing data scatter; (b) $\hat{x}^+$ vs $x^+$  
-- `case1_figure2.png` — (a) $\hat{x}^+$ vs $x^+$; (b) 3D prediction errors inside paraboloid bound $\pm C|(x,u)|$
+- `case1_figure2.png` — (a) training/testing data scatter; (b) $\hat{x}^+$ vs $x^+$  
+- `case1_C_vs_n.png` — (a) 3D prediction errors inside bound $\pm C|(x,u)|$; (b) Empirical C in terms of training data size N 
 
 ## Case 2 — Stabilizing Controller Synthesis (Section IV-C)
 
